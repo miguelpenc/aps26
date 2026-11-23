@@ -286,50 +286,27 @@
 
 				<!-- ===================== Mask geometry ===================== -->
 				<section>
-					<section>
-						<h2>Is it the flow, or just the mask?</h2>
-						<p style="text-align: center; margin: 0">The masks differ in <b>how long they stay correlated</b> with the flow they track</p>
-						<div class="figs">
-							<figure>
-								<p class="legend">Error vs. correlation time</p>
-								<img class="plot tall" src="media/corr_err_phi20.svg" data-src-dark alt="Assimilation error against the correlation time of the excursion set" />
-							</figure>
-							<figure>
-								<p class="legend">Correlation in space vs. in time</p>
-								<img class="plot tall" src="media/corr_time_space.svg" data-src-dark alt="Spatial against temporal correlation scale of every excursion set" />
-							</figure>
-						</div>
-						<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
-						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
-						<div class="overlay fragment">
-							<p>The error <b>collapses</b> on the mask’s correlation time</p>
-							<p class="fragment">So is the difference between <span class="c4">vorticity</span> and <span class="c1">strain</span> just <b>geometry</b>?</p>
-							<div class="fragment ask"><hr /><p>What if the masks were <span class="c5">decorrelated</span> from the flow?</p></div>
-						</div>
-					</section>
-
-					<section>
-						<h2>A decorrelated control</h2>
-						<p style="text-align: center; margin: 0">Same shapes, same statistics — but <b>moved to an uncorrelated place</b> in the flow</p>
-						<div class="figs">
-							<figure>
-								<p class="legend">Error of the decorrelated masks</p>
-								<img class="plot tall" src="media/corr_err_random.svg" data-src-dark alt="Assimilation error of the decorrelated control masks" />
-							</figure>
-							<figure>
-								<p class="legend">Real / decorrelated <span class="muted">· marker = $\Delta$</span></p>
-								<img class="plot tall" src="media/rd_excess_error.svg" data-src-dark alt="Ratio of the error of the real masks to the decorrelated ones" />
-							</figure>
-						</div>
-						<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
-						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
-						<div class="overlay fragment">
-							<p>Decorrelating the masks <b>collapses</b> the six curves onto one: the trends with $\Delta$ and $\phi$ are <b>geometry</b>.</p>
-							<p class="fragment">What separates them is the <b>excess</b> over their own control: <span class="c4">vorticity</span> masks do up to <b>80% worse</b> than their randomised twins, <span class="c1">strain</span> ones match or beat theirs.</p>
-							<p class="fragment" style="font-size: 1.3em">The difference is in the <span class="c5">flow</span>, not in the mask</p>
-							<div class="fragment ask"><hr /><p>So where does the error <span class="c5">come from</span>?</p></div>
-						</div>
-					</section>
+					<h2>Is it the flow, or just the mask?</h2>
+					<p style="text-align: center; margin: 0">The masks differ in <b>how long they stay correlated</b> &mdash; compare each with a <b>decorrelated twin</b></p>
+					<div class="figs">
+						<figure>
+							<p class="legend">Error vs. correlation time</p>
+							<img class="plot tall" src="media/corr_err_phi20.svg" data-src-dark alt="Assimilation error against the correlation time of the excursion set" />
+						</figure>
+						<figure class="fragment">
+							<p class="legend">Error of the decorrelated twins</p>
+							<img class="plot tall" src="media/corr_err_random.svg" data-src-dark alt="Assimilation error of the decorrelated control masks" />
+						</figure>
+					</div>
+					<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+					<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+					<div class="overlay fragment">
+						<p>The error <b>collapses</b> on the mask’s correlation time</p>
+						<p class="fragment">Decorrelating the masks <b>collapses</b> the six curves onto one: the trends with $\Delta$ and $\phi$ are <b>geometry</b>.</p>
+						<p class="fragment">What separates them is the <b>excess</b> over their own control: up to <b>80% worse</b> for <span class="c4">vorticity</span>, on par or better for <span class="c1">strain</span>.</p>
+						<p class="fragment" style="font-size: 1.3em">The difference is in the <span class="c5">flow</span>, not in the mask</p>
+						<div class="fragment ask"><hr /><p>So where does the error <span class="c5">come from</span>?</p></div>
+					</div>
 				</section>
 
 				<!-- ===================== Error budget ===================== -->
@@ -371,11 +348,6 @@
 							$\phi=0.2$, $\Delta/\eta=10$ &nbsp;·&nbsp; <span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp;
 							long-time averages, rates per $\tau_\eta$, each normalised with its own $e^2$
 						</p>
-						<div class="overlay fragment">
-							<p>Production and dissipation <b>nearly cancel</b>: their sum sits on zero for both masks.</p>
-							<p class="fragment">The transport is <b>negative</b> for both, and <b>stronger</b> for the <span class="c1">strain</span> mask. Fluxes transport certainty outside the assimilation error.</p>
-							<div class="fragment ask"><hr /><p>What, about the <span class="c5">forcing and sweeping</span></p></div>
-						</div>
 					</section>
 
 					<section data-auto-animate data-auto-animate-id="budget">
@@ -404,7 +376,7 @@
 						<div class="overlay fragment">
 							<p>The budget is <b>forcing+flux in, assimilation out</b>.</p>
 							<p class="fragment">Per unit of error, the <span class="c1">strain</span> mask removes <b>42% more</b> than the <span class="c4">vorticity</span> one</p>
-							<div class="fragment ask"><hr /><p>Does it win by <span class="c5">killing the production</span>?</p></div>
+							<div class="fragment ask"><hr /><p>The mask has the same (or worse) surface area and sweeping velocity &mdash; so what makes its <span class="c5">sweeping stronger</span>?</p></div>
 						</div>
 					</section>
 
@@ -436,25 +408,25 @@
 				<section>
 					<h2 class="c1">Conclusions</h2>
 					<div class="spread">
-						<p class="fragment">
+						<p>
 							We assimilate HIT on <b>excursion sets</b> of strain and vorticity, at three Reynolds numbers and over
 							wide ranges of $\Delta$, $\phi$ and $\alpha$.
 						</p>
-						<p class="fragment">
+						<p>
 							<span class="c4">Vorticity</span>-based masks are <b>consistently worse</b> observables than
 							<span class="c1">strain</span>-based ones. <span class="c3">Vortex stretching</span> and
 							<span class="c2">strain self-amplification</span> <b>cannot be separated</b> this way: their excursion
 							sets are those of <span class="c4">vorticity</span> and <span class="c1">strain</span>.
 						</p>
-						<p class="fragment">
+						<p>
 							A <b>decorrelated control</b> shows the ordering is <span class="c4">not geometry</span>: mask correlations explain
 							the trends with $\Delta$ and $\phi$, but strain against vorticity <b>survives decorrelation</b>.
 						</p>
-						<p class="fragment">
+						<p>
 							The error budget is <b>forcing produces error, assimilation kills it</b>. Strain masks remove error faster, but 
 							<b>not</b> by suppressing its production.
 						</p>
-						<p class="fragment">
+						<p>
                             High vorticity are bad for data assimilation because velocity curls across their surface, killing the <span class="c5">flux</span>
 						</p>
 					</div>
@@ -482,6 +454,35 @@
 						<img class="erclogo" src="media/erc_eu.png" data-src-dark alt="Funded by the European Union &mdash; European Research Council" />
 						<img src="media/uc3m_logo.svg" alt="Universidad Carlos III de Madrid" style="width: 30%" />
 					</div>
+				</section>
+
+				<!-- ===================== Backup ===================== -->
+				<section>
+					<section>
+					<h2>Backup: mask correlations</h2>
+					<p style="text-align: center; margin: 0">Every excursion set, its <b>spatial</b> correlation scale against its <b>temporal</b> one</p>
+					<div class="figs">
+						<figure>
+							<p class="legend">Correlation in space vs. in time</p>
+							<img class="plot tall" src="media/corr_time_space.svg" data-src-dark alt="Spatial against temporal correlation scale of every excursion set" />
+						</figure>
+					</div>
+					<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+					<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+					</section>
+
+					<section>
+					<h2>Backup: excess over the control</h2>
+					<p style="text-align: center; margin: 0"><span class="c4">Vorticity</span> masks do up to <b>80% worse</b> than their randomised twins; <span class="c1">strain</span> ones match or beat theirs</p>
+					<div class="figs">
+						<figure>
+							<p class="legend">Real / decorrelated <span class="muted">· marker = $\Delta$</span></p>
+							<img class="plot tall" src="media/rd_excess_error.svg" data-src-dark alt="Ratio of the error of the real masks to the decorrelated ones" />
+						</figure>
+					</div>
+					<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+					<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+					</section>
 				</section>
 			</div>
 		</div>
