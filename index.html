@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Vorticity is an inefficient data assimilator in turbulent flows</title>
+
+		<link rel="stylesheet" href="dist/reset.css" />
+		<link rel="stylesheet" href="dist/reveal.css" />
+		<link rel="stylesheet" href="dist/layout/talk.css" />
+		<link rel="stylesheet" href="dist/palette/ivory.css" />
+		<style>
+			/* Title slide: wash the video down from the top and in from the left, so the
+			   dark field reads only in the bottom-right corner. Both layers stop short of
+			   fully transparent, which the deck's own video needs (it carries no fade). */
+			.reveal .slide-background.fade-bg .slide-background-content::after {
+				background:
+					linear-gradient(to right,
+						color-mix(in srgb, var(--r-background-color) 82%, transparent) 0%,
+						color-mix(in srgb, var(--r-background-color) 55%, transparent) 30%,
+						color-mix(in srgb, var(--r-background-color) 12%, transparent) 70%,
+						transparent 100%),
+					linear-gradient(to bottom,
+						var(--r-background-color) 0%,
+						var(--r-background-color) 40%,
+						color-mix(in srgb, var(--r-background-color) 55%, transparent) 70%,
+						color-mix(in srgb, var(--r-background-color) 22%, transparent) 100%);
+			}
+			/* Slide number: reveal emits the h, the dot and the v as indented spans, so
+			   the markup's own whitespace prints as "3 . 1". Flex drops whitespace-only
+			   text nodes between items. */
+			.reveal .slide-number a { display: flex; }
+			.reveal .slide-number-delimiter { margin: 0; }
+			/* Title slide */
+			.title-date { align-self: stretch; text-align: right; margin: 0; padding-bottom: 0.35em; font-size: 0.62em; line-height: 1.3; font-variant-caps: small-caps; letter-spacing: 0.02em; }
+			/* Orlando, discreetly */
+			.reveal .mickey { height: 1em; width: auto; vertical-align: -0.17em; margin: 0 -0.2em 0 0.3em; fill: currentColor; }
+			.mark { font-size: 1.15em; line-height: 1; margin-right: 0.3em; }
+			.reveal .title-affil { align-self: flex-start; height: 1.75em; width: auto; margin-top: 0.45em; }
+			.title-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+			.title-foot p { margin: 0; font-size: 0.8em; color: #fff; text-shadow: 0 0 0.2em rgb(0 0 0 / 0.7), 0 0 0.6em rgb(0 0 0 / 0.5); }
+			.title-foot .grant { width: 42%; display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em; }
+			.title-foot .grant p { color: var(--r-main-color); text-shadow: none; font-size: 0.55em; }
+			.title-foot .grant img { width: 100%; }
+			/* The official ERC artwork is transparent, with its lettering in black and
+			   EU blue, so the dark theme gets a twin whose lettering is white -- what the
+			   EU visibility guidance prescribes over a dark background. The flag keeps its
+			   blue field and yellow stars in both; erc_eu-dark.png is made from erc_eu.png. */
+			.erclogo { width: 28%; display: block; }
+			/* Plot slides: legend, figures, parameters, indicators — same place on every slide */
+			.figs { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; gap: 1em; }
+			.plot { height: 520px; }
+			.plot.tall { height: 640px; }
+			/* The panels carry their ylabel inside the image, so the axes box is not
+			   centred on the file: its centre sits at 0.578 of the width (measured on
+			   the rendered SVGs; TOP_LEFT/TOP_RIGHT = 0.18/0.98 in make_figures.py).
+			   The padding shifts the centred title by twice that excess. */
+			/* `.reveal p` (0,1,1) sets margin and line-height, so the legend needs two
+			   classes to outrank it; talk.css gives `figure` a 0.3em flex gap. */
+			.reveal .figs figure { gap: 0; }
+			.reveal .legend { font-size: 0.9em; line-height: 1; margin: 0; text-align: center; padding-left: 15.6%; }
+			/* Auto-animated equation. A <p> is a "text node" to reveal, which animates
+			   font-size and relays out the whole KaTeX tree every frame; a <div> is
+			   scaled with a transform instead. inline-block keeps the box on the
+			   formula so scaleX and scaleY stay equal. */
+			.eq { display: inline-block; align-self: center; margin: 0; text-align: center; }
+			/* Budget equation: the braces that match the two panels of each slide.
+			   Own classes, not .c3/.c5, which also carry a bolder weight. */
+			.reveal .eqred { color: var(--c5); }
+			.reveal .eqgreen { color: var(--c3); }
+			.reveal .eqink { color: var(--r-main-color); }
+			/* Curtain hand-off: the curtain centres its text, so the question that leads
+			   into the next slide is pinned to the bottom and nothing above it moves. */
+			.overlay .ask { position: absolute; left: 8%; right: 8%; bottom: 1.8em; }
+			.overlay .ask hr { width: 30%; margin: 0 auto 1em; }
+			.reveal .overlay .ask p { margin: 0; font-size: 0.9em; color: var(--r-heading-color); }
+			.params { display: flex; justify-content: center; align-items: baseline; gap: 1.2em; margin: 0.3em 0 0; }
+			.ind { text-align: center; font-size: 0.85em; margin: 0.3em 0 0; }
+			/* Video slide */
+			.video-key { align-self: stretch; display: flex; flex-direction: column; justify-content: space-evenly; font-size: 0.95em; line-height: 1.3; }
+			.video-key p { margin: 0; }
+			/* Not <span class="note">: the layout sets `.reveal small * { vertical-align: top }`,
+			   which throws KaTeX's subscripts off the baseline. */
+			.video-key .note { font-size: 0.8em; padding-left: 1em; display: block; }
+			/* Video box: videos stacked, labels and seam covers positioned on the video itself.
+			   Edges feathered so the video's own background blends into the slide whatever the
+			   browser's colour management does to it. */
+			.video-box { position: relative; display: grid; width: fit-content; margin: auto;
+				--feather: linear-gradient(transparent, #000 3%, #000 97%, transparent);
+				mask-image: var(--feather), linear-gradient(to right, transparent, #000 3%, #000 97%, transparent); mask-composite: intersect; }
+			.video-box > * { grid-area: 1 / 1; }
+			.video-box video { display: block; height: 860px; }
+			.video-label, .seam { position: absolute; }
+			.video-label { color: #fff; text-align: center; }
+			.seam { background: var(--video-bg); }
+		</style>
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<!-- ===================== Title ===================== -->
+				<section class="fade-bg" data-background-video="media/w_ivory_seq.mp4" data-background-video-dark data-background-size="cover" data-background-video-loop data-background-video-muted>
+					<p class="title-date">
+						79th Meeting of the APS Division of Fluid Dynamics<br />
+						<span class="c5" style="font-weight: inherit">Session Q26 &mdash; Turbulence: Theory</span><br />
+						November 22&ndash;24, 2026, Orlando<svg class="mickey" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="4.2" /><circle cx="18" cy="7" r="4.2" /><circle cx="12" cy="15" r="7" /></svg>, FL
+					</p>
+					<h1 class="c4" style="margin-top: 0.8em">Vorticity is an inefficient<br />data assimilator in turbulent flows</h1>
+					<p style="font-size: 1.35em; margin: 0">Miguel P. Encinar</p>
+					<img class="title-affil" src="media/uc3m_Department_Aerospace_Engineering.svg"
+						 data-src-dark="media/uc3m_Department_Aerospace_Engineering_white.svg"
+						 alt="UC3M Department of Aerospace Engineering" />
+
+					<div class="title-foot">
+						<p>Homogeneous Isotropic Turbulence at $Re_\lambda\approx300$</p>
+						<div class="grant">
+							<p>Grant PID2024-161656NA-I00 funded by</p>
+							<img src="media/MICIU+AEI+MdM_version_movil.png" alt="Funded by MICIU/AEI and the Mar&iacute;a de Maeztu excellence programme" />
+						</div>
+					</div>
+				</section>
+
+				<!-- ===================== Motivation ===================== -->
+				<section>
+					<h2>Motivations &amp; Background</h2>
+					<div class="grow">
+						<h3 class="c1 fragment" data-fragment-index="1">Practical</h3>
+						<p class="fragment" data-fragment-index="2">
+							<span class="c1">Data Assimilation</span> is a field of growing importance in practical applications, from the
+							&ldquo;<b>control</b>&rdquo; problem, to <b>prediction</b> of chaotic flows (e.g. weather, ocean currents).
+						</p>
+						<p class="fragment" data-fragment-index="3">
+							In <b>research</b> and <b>engineering</b> it offers the prospect of <span class="c4">combining</span>
+							<b>experimental data</b> with numerical simulations, mitigating the weaknesses of each.
+						</p>
+					</div>
+					<div class="grow">
+						<h3 class="c4 fragment" data-fragment-index="1">Theoretical</h3>
+						<p class="fragment" data-fragment-index="4">
+							<b>Data assimilation</b> can be leveraged for <span class="c4">physical discovery</span>. It is an
+							<b>intrusive</b> technique that allows asking which <b>regions of the flow</b> carry the information
+							required to <b>reconstruct the rest</b>.
+						</p>
+						<p class="fragment" data-fragment-index="5">
+							This work set out to weigh <span class="c3">Vortex Stretching (VS)</span> against
+							<span class="c2">Strain Self Amplification (SSA)</span> <span class="ref">[Tsinober 2001]</span>.
+							<b>That proved not to be possible.</b>
+						</p>
+					</div>
+					<div class="fragment" data-fragment-index="6" style="text-align: center">
+						<hr />
+						<p style="font-size: 1.1em">
+							<span class="c5 mark">✗</span>Assimilation <b>cannot distinguish</b> <span class="c3">VS</span> from <span class="c2">SSA</span>.<br />
+							<span class="c3 mark">✓</span>What it <b>does</b> separate, cleanly, is <span class="c4">vorticity</span> from <span class="c1">strain</span>.
+						</p>
+					</div>
+				</section>
+
+				<!-- ===================== Numerical experiments ===================== -->
+				<section>
+					<section data-auto-animate data-auto-animate-id="experiments">
+						<h2>Numerical Experiments</h2>
+						<h3 class="c4 fragment">Reference simulation</h3>
+						<div class="cols">
+							<div class="fragment" style="flex: 2.2">
+								$$\begin{gathered}\nabla\cdot\boldsymbol{u}=0\\ \partial_t\boldsymbol{u}+\nabla\cdot(\boldsymbol{u}\otimes\boldsymbol{u})=-\nabla p+Re^{-1}\nabla^2\boldsymbol{u}+\htmlClass{c4}{\boldsymbol{f}}\end{gathered}$$
+							</div>
+							<p class="fragment c4" style="font-size: 0.65em; font-weight: inherit; text-align: center">$\boldsymbol{f}$ injects constant energy in the largest wavenumbers</p>
+						</div>
+						<p class="fragment" style="font-size: 0.75em">
+							Incompressible N–S :: Triply periodic HIT :: $N=128^3,\,256^3,\,512^3$ :: $k\eta_{max}=1.5$ ::
+							$Re_\lambda\approx104,\,169,\,275$
+						</p>
+						<h3 class="c1 fragment">Surrogate simulation(s)</h3>
+						<div class="fragment" data-id="eqv">
+							$$\begin{gathered}\nabla\cdot\boldsymbol{v}=0\\ \partial_t\boldsymbol{v}+\nabla\cdot(\boldsymbol{v}\otimes\boldsymbol{v})=-\nabla p+Re^{-1}\nabla^2\boldsymbol{v}+\htmlClass{c1}{\alpha M(\boldsymbol{x},t)\,[\boldsymbol{u}-\boldsymbol{v}]}\end{gathered}$$
+						</div>
+						<div class="fragment" style="text-align: center; font-size: 0.75em">
+							<p style="margin: 0.2em">Surrogates <b>have no explicit driving term</b></p>
+							<p style="margin: 0.2em"><span class="c1">$\alpha$</span> controls the intensity of the driving force</p>
+							<p style="margin: 0.2em"><span class="c1">$M$</span> is a <b>mask</b>, 0 or 1 depending on the region of the flow and the time</p>
+						</div>
+					</section>
+
+					<section data-auto-animate data-auto-animate-id="experiments">
+						<h2>Numerical Experiments</h2>
+						<div data-id="eqv">
+							$$\begin{gathered}\nabla\cdot\boldsymbol{v}=0\\ \partial_t\boldsymbol{v}+\nabla\cdot(\boldsymbol{v}\otimes\boldsymbol{v})=-\nabla p+Re^{-1}\nabla^2\boldsymbol{v}+\htmlClass{c1}{\alpha M(\boldsymbol{x},t)\,[\boldsymbol{u}-\boldsymbol{v}]}\end{gathered}$$
+						</div>
+						<div class="fragment" data-fragment-index="1" style="align-self: flex-end; margin: -1.4em 12% 0 0; font-size: 0.6em">
+							$\left\lfloor\begin{array}{ll}\text{Nudging,} & \text{if } \alpha \text{ is finite,}\\ \text{Direct assimilation,} & \text{if } \alpha\to\infty.\end{array}\right.$
+						</div>
+						<p class="fragment" data-fragment-index="2">$M(\boldsymbol{x},t)$ is built in three steps:</p>
+						<ul style="font-size: 0.68em">
+							<li class="fragment" data-fragment-index="3">
+								The reference velocity is <b>filtered</b> at a width $\Delta$:
+								$$\tilde{\boldsymbol{u}}(\boldsymbol{x},t;\Delta)=\int_{\forall\boldsymbol{x}'} \exp\!\left[-(|\boldsymbol{x}'|/\Delta)^2\right]\boldsymbol{u}(\boldsymbol{x}-\boldsymbol{x}',t)\,\mathrm{d}\boldsymbol{x}'$$
+							</li>
+							<li class="fragment" data-fragment-index="4">
+								An <b>indicator</b> $I$ is computed from the filtered velocity, e.g.
+								$$I(\boldsymbol{x},t;\Delta)=\tilde\omega_i\tilde\omega_i,\qquad \boldsymbol{\omega}=\nabla\times\tilde{\boldsymbol{u}},\quad 2\mathsf{S}=\nabla\tilde{\boldsymbol{u}}+\nabla\tilde{\boldsymbol{u}}^{\mathsf T}$$
+							</li>
+							<li class="fragment" data-fragment-index="5">
+								It is <b>thresholded</b>, keeping a fixed fraction $\phi$ of the volume:
+								$$M(\boldsymbol{x},t;\Delta,\phi)=\begin{cases}1, & I(\boldsymbol{x},t;\Delta)>\mu(\phi);\quad \mu(\phi)\ni\tfrac1V\int_V M\,\mathrm{d}V=\phi\\ 0, & \text{otherwise.}\end{cases}$$
+							</li>
+							<li class="fragment" data-fragment-index="6">
+								The masks depend on the <span class="c4">filter width</span> $\Delta$, the <span class="c5">indicator</span> $I$,
+								and the <span class="c3">volume fraction</span> $\phi$.
+							</li>
+						</ul>
+					</section>
+
+					<!-- Example -->
+					<section data-background-color="#515870" style="--video-bg: #515870">
+						<h2>Numerical Experiments: Example</h2>
+						<div class="cols grow">
+							<div class="video-key">
+								<p><b style="color: #e08bb0">Pink</b> shading<span class="note">Turbulent kinetic energy</span></p>
+								<p><b style="color: #7fb6e6">Blue</b> mask (Enstrophy)<span class="note">$\phi=0.1,\quad I=|\omega|$<br />$\Delta=20\eta,\quad \alpha\to\infty$</span></p>
+								<p><b style="color: #ddd36a">Yellow</b> mask (SSA)<span class="note">$\phi=0.1,\quad I=-SSS$<br />$\Delta=20\eta,\quad \alpha\to\infty$</span></p>
+							</div>
+							<div style="flex: 2.4">
+								<div class="video-box">
+									<video src="media/assimilation_intro.mp4" data-autoplay muted></video>
+									<div class="fragment" data-fragment-index="1"><video src="media/assimilation.mp4" data-autoplay muted></video></div>
+									<div class="seam" style="left: calc(58.19% - 2px); width: 5px; top: 0; bottom: 0"></div>
+									<div class="seam" style="top: calc(50.06% - 2px); height: 5px; left: 58.19%; right: 0"></div>
+									<span class="video-label" style="top: 5%; left: 0; width: 58%">Reference Simulation</span>
+									<span class="video-label" style="top: 47%; left: 58%; width: 42%; font-size: 0.55em">Surrogate Simulations</span>
+								</div>
+							</div>
+							<div style="font-size: 0.75em; text-align: center">
+								<p>The masks occupy the full volume; only the background is shown, for clarity</p>
+								<p class="fragment" data-fragment-index="2" style="font-size: 1.25em; margin-top: 3em">Let us <b>measure</b> the error of the reconstruction</p>
+							</div>
+						</div>
+					</section>
+				</section>
+
+				<!-- ===================== Parameters ===================== -->
+				<section>
+					<section>
+						<h2>Results: the ordering is robust</h2>
+						<div class="figs">
+							<figure>
+								<p class="legend">Varying the volume fraction $\phi$</p>
+								<img class="plot tall" src="media/assim_phi.svg" data-src-dark alt="Assimilation error against the volume fraction" />
+							</figure>
+							<figure>
+								<p class="legend">Varying the filter width $\Delta$</p>
+								<img class="plot tall" src="media/assim_delta.svg" data-src-dark alt="Assimilation error against the filter width" />
+							</figure>
+						</div>
+						<div class="params"><span>$\phi$</span><span>$\Delta$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+						<div class="overlay fragment">
+							<p><span class="c4">Vorticity</span>-based masks leave <b>more error</b> than <span class="c1">strain</span>-based ones</p>
+							<p class="fragment">$\Delta$ and $\phi$ move the <b>level</b>, never the <b>ordering</b>; nudging and direct assimilation agree, so only $\alpha\to\infty$ is shown</p>
+							<div class="fragment ask"><hr /><p>What about <span class="c5">$Re_\lambda$</span>?</p></div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Results: and it survives $Re$</h2>
+						<div class="figs">
+							<figure>
+								<p class="legend">$\Delta/\eta\approx10$ <span class="muted">(Kolmogorov units)</span></p>
+								<img class="plot tall" src="media/re_phi_inner.svg" data-src-dark alt="Error against volume fraction at three Reynolds numbers, fixed filter width in Kolmogorov units" />
+							</figure>
+							<figure>
+								<p class="legend">$L_E/\Delta\approx22$ <span class="muted">(integral units)</span></p>
+								<img class="plot tall" src="media/re_phi_outer.svg" data-src-dark alt="Error against volume fraction at three Reynolds numbers, fixed filter width in integral units" />
+							</figure>
+						</div>
+						<div class="params"><span>$\phi$</span><span class="boxed">$Re_\lambda=104,\,169,\,275$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+						<div class="overlay fragment">
+							<p>For the Three Reynolds numbers shown, <b>the ordering</b> is robust, and roughly collapses in filter widths proportional to the integral scale</p>
+							<p class="muted fragment" style="font-size: 0.8em">$\circ$ B128 &nbsp; $\square$ B256 &nbsp; $\triangle$ B512</p>
+							<div class="fragment ask"><hr /><p>Is it the flow, or just the <span class="c5">shape of the mask</span>?</p></div>
+						</div>
+					</section>
+				</section>
+
+				<!-- ===================== Mask geometry ===================== -->
+				<section>
+					<section>
+						<h2>Is it the flow, or just the mask?</h2>
+						<p style="text-align: center; margin: 0">The masks differ in <b>how long they stay correlated</b> with the flow they track</p>
+						<div class="figs">
+							<figure>
+								<p class="legend">Error vs. correlation time</p>
+								<img class="plot tall" src="media/corr_err_phi20.svg" data-src-dark alt="Assimilation error against the correlation time of the excursion set" />
+							</figure>
+							<figure>
+								<p class="legend">Correlation in space vs. in time</p>
+								<img class="plot tall" src="media/corr_time_space.svg" data-src-dark alt="Spatial against temporal correlation scale of every excursion set" />
+							</figure>
+						</div>
+						<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+						<div class="overlay fragment">
+							<p>The error <b>collapses</b> on the mask’s correlation time</p>
+							<p class="fragment">So is the difference between <span class="c4">vorticity</span> and <span class="c1">strain</span> just <b>geometry</b>?</p>
+							<div class="fragment ask"><hr /><p>What if the masks were <span class="c5">decorrelated</span> from the flow?</p></div>
+						</div>
+					</section>
+
+					<section>
+						<h2>A decorrelated control</h2>
+						<p style="text-align: center; margin: 0">Same shapes, same statistics — but <b>moved to an uncorrelated place</b> in the flow</p>
+						<div class="figs">
+							<figure>
+								<p class="legend">Error of the decorrelated masks</p>
+								<img class="plot tall" src="media/corr_err_random.svg" data-src-dark alt="Assimilation error of the decorrelated control masks" />
+							</figure>
+							<figure>
+								<p class="legend">Real / decorrelated <span class="muted">· marker = $\Delta$</span></p>
+								<img class="plot tall" src="media/rd_excess_error.svg" data-src-dark alt="Ratio of the error of the real masks to the decorrelated ones" />
+							</figure>
+						</div>
+						<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
+						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+						<div class="overlay fragment">
+							<p>Decorrelating the masks <b>collapses</b> the six curves onto one: the trends with $\Delta$ and $\phi$ are <b>geometry</b>.</p>
+							<p class="fragment">What separates them is the <b>excess</b> over their own control: <span class="c4">vorticity</span> masks do up to <b>80% worse</b> than their randomised twins, <span class="c1">strain</span> ones match or beat theirs.</p>
+							<p class="fragment" style="font-size: 1.3em">The difference is in the <span class="c5">flow</span>, not in the mask</p>
+							<div class="fragment ask"><hr /><p>So where does the error <span class="c5">come from</span>?</p></div>
+						</div>
+					</section>
+				</section>
+
+				<!-- ===================== Error budget ===================== -->
+				<section>
+					<section data-auto-animate data-auto-animate-id="budget">
+						<h2>Where does the error come from?</h2>
+						<div class="grow center">
+                            <p>In steady state, the assimilation error balance reads,</p>
+							<div class="eq" data-id="budget-eq">
+							$$\underbrace{2\!\int_{\neg M}\!\boldsymbol{f}\boldsymbol{e}\,\mathrm{d}V}_{\text{forcing}}
+							\underbrace{-\,2\!\int_{\neg M}\!\boldsymbol{e}\mathsf{S}\boldsymbol{e}\,\mathrm{d}V}_{\text{production}}
+							\;=\; \underbrace{2Re^{-1}\!\!\int_{\neg M}\!\!|\nabla\boldsymbol{e}|^2\,\mathrm{d}V}_{\text{dissipation}}
+							\underbrace{+\int_{\Omega} e^2\partial_t M\,\mathrm{d}V}_{\text{sweeping}}
+							\underbrace{-\oint_{\partial M}\!\boldsymbol{F}\!\cdot\!\boldsymbol{n}\,\mathrm{d}S}_{\text{flux}}$$
+							</div>
+						</div>
+					</section>
+
+					<section data-auto-animate data-auto-animate-id="budget">
+						<h2>Where does the error come from?</h2>
+						<div class="eq" data-id="budget-eq" style="font-size: 0.62em">
+							$$\underbrace{2\!\int_{\neg M}\!\boldsymbol{f}\boldsymbol{e}\,\mathrm{d}V}_{\text{forcing}}
+							\htmlClass{eqgreen}{\underbrace{\htmlClass{eqink}{-\,2\!\int_{\neg M}\!\boldsymbol{e}\mathsf{S}\boldsymbol{e}\,\mathrm{d}V}}_{\text{production}}}
+							\;=\; \htmlClass{eqgreen}{\underbrace{\htmlClass{eqink}{2Re^{-1}\!\!\int_{\neg M}\!\!|\nabla\boldsymbol{e}|^2\,\mathrm{d}V}}_{\text{dissipation}}}
+							\underbrace{+\int_{\Omega} e^2\partial_t M\,\mathrm{d}V}_{\text{sweeping}}
+							\htmlClass{eqred}{\underbrace{\htmlClass{eqink}{-\oint_{\partial M}\!\boldsymbol{F}\!\cdot\!\boldsymbol{n}\,\mathrm{d}S}}_{\text{flux}}}$$
+						</div>
+						<div class="figs">
+							<figure>
+								<p class="legend eqred">Transport of error</p>
+								<img class="plot tall" src="media/pdf_terms_flux_own.svg" data-src-dark alt="Pdf of the transport flux per unit error" />
+							</figure>
+							<figure>
+								<p class="legend eqgreen">Production and dissipation</p>
+								<img class="plot tall" src="media/pdf_terms_dissprod_own.svg" data-src-dark alt="Pdf of the production plus dissipation per unit error" />
+							</figure>
+						</div>
+						<p class="ind" style="font-size: 0.75em">
+							$\phi=0.2$, $\Delta/\eta=10$ &nbsp;·&nbsp; <span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp;
+							long-time averages, rates per $\tau_\eta$, each normalised with its own $e^2$
+						</p>
+						<div class="overlay fragment">
+							<p>Production and dissipation <b>nearly cancel</b>: their sum sits on zero for both masks.</p>
+							<p class="fragment">The transport is <b>negative</b> for both, and <b>stronger</b> for the <span class="c1">strain</span> mask. Fluxes transport certainty outside the assimilation error.</p>
+							<div class="fragment ask"><hr /><p>What, about the <span class="c5">forcing and sweeping</span></p></div>
+						</div>
+					</section>
+
+					<section data-auto-animate data-auto-animate-id="budget">
+						<h2>Where does the error come from?</h2>
+						<div class="eq" data-id="budget-eq" style="font-size: 0.62em">
+							$$\htmlClass{eqred}{\underbrace{\htmlClass{eqink}{2\!\int_{\neg M}\!\boldsymbol{f}\boldsymbol{e}\,\mathrm{d}V}}_{\text{forcing}}}
+							\underbrace{-\,2\!\int_{\neg M}\!\boldsymbol{e}\mathsf{S}\boldsymbol{e}\,\mathrm{d}V}_{\text{production}}
+							\;=\; \underbrace{2Re^{-1}\!\!\int_{\neg M}\!\!|\nabla\boldsymbol{e}|^2\,\mathrm{d}V}_{\text{dissipation}}
+							\htmlClass{eqgreen}{\underbrace{\htmlClass{eqink}{+\int_{\Omega} e^2\partial_t M\,\mathrm{d}V}}_{\text{sweeping}}}
+							\underbrace{-\oint_{\partial M}\!\boldsymbol{F}\!\cdot\!\boldsymbol{n}\,\mathrm{d}S}_{\text{flux}}$$
+						</div>
+						<div class="figs">
+							<figure>
+								<p class="legend eqred">Work of the forcing</p>
+								<img class="plot tall" src="media/pdf_terms_forcing_own.svg" data-src-dark alt="Pdf of the work of the forcing per unit error" />
+							</figure>
+							<figure>
+								<p class="legend eqgreen">Work of the assimilation</p>
+								<img class="plot tall" src="media/pdf_terms_mask_own.svg" data-src-dark alt="Pdf of the work of the assimilation per unit error" />
+							</figure>
+						</div>
+						<p class="ind" style="font-size: 0.75em">
+							$\phi=0.2$, $\Delta/\eta=10$ &nbsp;·&nbsp; <span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp;
+							long-time averages, rates per $\tau_\eta$, each normalised with its own $e^2$
+						</p>
+						<div class="overlay fragment">
+							<p>The budget is <b>forcing+flux in, assimilation out</b>.</p>
+							<p class="fragment">Per unit of error, the <span class="c1">strain</span> mask removes <b>42% more</b> than the <span class="c4">vorticity</span> one</p>
+							<div class="fragment ask"><hr /><p>Does it win by <span class="c5">killing the production</span>?</p></div>
+						</div>
+					</section>
+
+					<section>
+						<h2>Mask sweeping is stronger for strain</h2>
+						<div class="figs">
+							<figure>
+								<p class="legend">Error vs. compressive strain</p>
+								<img class="plot tall" src="media/pdf_angles_compressive.svg" data-src-dark alt="Alignment of the error with the compressive strain eigendirection" />
+							</figure>
+							<figure>
+								<p class="legend">Flow across the mask boundary</p>
+								<img class="plot tall" src="media/pdf_angles_flux.svg" data-src-dark alt="Alignment of the reference velocity with the gradient of the squared error at the mask boundary" />
+							</figure>
+						</div>
+						<p class="ind" style="font-size: 0.75em">
+							<span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp;
+							left, in $\neg M$; right, in a band of $3.6\eta$ around $\partial M$
+						</p>
+						<div class="overlay fragment">
+							<p>The error sits in the <b>compressive</b> direction for both — the strain mask <b>produces more</b> error, not less</p>
+							<p class="fragment">What differs is <b>transport</b>: around <span class="c4">vortices</span> the flow slides <b>along</b> the mask boundary,
+							so it carries <b>3.6$\times$ less</b> error across it</p>
+						</div>
+					</section>
+				</section>
+
+				<!-- ===================== Conclusions ===================== -->
+				<section>
+					<h2 class="c1">Conclusions</h2>
+					<div class="spread">
+						<p class="fragment">
+							We assimilate HIT on <b>excursion sets</b> of strain and vorticity, at three Reynolds numbers and over
+							wide ranges of $\Delta$, $\phi$ and $\alpha$.
+						</p>
+						<p class="fragment">
+							<span class="c4">Vorticity</span>-based masks are <b>consistently worse</b> observables than
+							<span class="c1">strain</span>-based ones. <span class="c3">Vortex stretching</span> and
+							<span class="c2">strain self-amplification</span> <b>cannot be separated</b> this way: their excursion
+							sets are those of <span class="c4">vorticity</span> and <span class="c1">strain</span>.
+						</p>
+						<p class="fragment">
+							A <b>decorrelated control</b> shows the ordering is <span class="c4">not geometry</span>: mask correlations explain
+							the trends with $\Delta$ and $\phi$, but strain against vorticity <b>survives decorrelation</b>.
+						</p>
+						<p class="fragment">
+							The error budget is <b>forcing produces error, assimilation kills it</b>. Strain masks remove error faster, but 
+							<b>not</b> by suppressing its production.
+						</p>
+						<p class="fragment">
+                            High vorticity are bad for data assimilation because velocity curls across their surface, killing the <span class="c5">flux</span>
+						</p>
+					</div>
+					<div class="overlay fragment">
+						<p>Thank you for listening!</p>
+						<p class="c4 fragment" style="font-size: 2.4em; font-weight: inherit; margin: 0">Questions? Suggestions?</p>
+					</div>
+				</section>
+
+				<!-- ===================== Recruitment ===================== -->
+				<section class="fade-bg" data-background-video="media/w_ivory_seq.mp4" data-background-video-dark data-background-size="cover" data-background-video-loop data-background-video-muted>
+					<h2 class="c4">We are hiring</h2>
+					<div class="spread">
+						<p class="c5"><b>TurbARe</b> &nbsp;·&nbsp; Modelling multiscale dissipation from a new angle</p>
+						<p>
+							<b>PhD</b> and <b>postdoctoral</b> positions on
+							<b>Modelling turbulent dissipation with geometrical transformations</b>, at the Department of Aerospace
+							Engineering, <b>Universidad Carlos III de Madrid</b>.
+						</p>
+						<p>Hiring from <b>January 2027</b> &nbsp;·&nbsp; project starts <b>May 2027</b> &nbsp;·&nbsp; ERC Starting Grant, 60 months</p>
+						<p class="c1" style="font-size: 1.2em"><b>mipereze@ing.uc3m.es</b></p>
+						<p class="muted" style="font-size: 0.7em">Email me if interested.</p>
+					</div>
+					<div class="title-foot" style="align-items: center">
+						<img class="erclogo" src="media/erc_eu.png" data-src-dark alt="Funded by the European Union &mdash; European Research Council" />
+						<img src="media/uc3m_logo.svg" alt="Universidad Carlos III de Madrid" style="width: 30%" />
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="dist/plugin/notes.js"></script>
+		<script src="dist/plugin/math.js"></script>
+		<script src="dist/plugin/theme.js"></script>
+		<script>
+			Reveal.initialize({
+				width: 1920,
+				height: 1080,
+				margin: 0.04,
+				center: false,
+				display: 'flex',
+				hash: true,
+				controls: false,
+				progress: true,
+				slideNumber: 'h.v',
+				transition: 'fade',
+				navigationMode: 'linear',
+				// no 'font-size': reveal would animate it on top of the scale transform
+				autoAnimateStyles: ['opacity', 'color', 'background-color', 'padding', 'line-height',
+					'letter-spacing', 'border-width', 'border-color', 'border-radius', 'outline', 'outline-offset'],
+				katex: { local: 'dist/plugin/math/katex', trust: true },
+				plugins: [RevealNotes, RevealMath.KaTeX, RevealTheme],
+			});
+
+			// Dark-mode background videos. The theme plugin swaps img[data-src-dark];
+			// background videos belong to reveal, not to the <section>, so swap them
+			// here: rewrite the attribute and let reveal rebuild the background.
+			// Opt in per slide with data-background-video-dark (empty = '-dark' suffix).
+			const themedVideos = document.querySelectorAll('section[data-background-video][data-background-video-dark]');
+			function swapBackgroundVideos(theme) {
+				themedVideos.forEach((slide) => {
+					const light = (slide.dataset.backgroundVideoLight ??= slide.dataset.backgroundVideo);
+					const dark = slide.dataset.backgroundVideoDark || light.replace(/(\.\w+)$/, '-dark$1');
+					const wanted = theme === 'dark' ? dark : light;
+					if (slide.dataset.backgroundVideo === wanted) return;
+					// The two files are the same frames in another colormap, so carry the
+					// playhead across and the swap reads as a recolour, not a restart.
+					const playing = slide.slideBackgroundContentElement?.querySelector('video');
+					const at = playing ? playing.currentTime : 0;
+					slide.dataset.backgroundVideo = wanted;
+					Reveal.syncSlide(slide);
+					const fresh = slide.slideBackgroundContentElement?.querySelector('video');
+					if (!fresh) return;
+					// reveal rewinds a background video to 0 when it starts it, so seek on
+					// 'play', once that rewind has happened.
+					fresh.addEventListener('play', () => (fresh.currentTime = at), { once: true });
+				});
+			}
+			Reveal.on('ready', () => {
+				swapBackgroundVideos(document.documentElement.dataset.theme);
+				new MutationObserver(() => swapBackgroundVideos(document.documentElement.dataset.theme))
+					.observe(document.documentElement, { attributeFilter: ['data-theme'] });
+			});
+		</script>
+	</body>
+</html>
