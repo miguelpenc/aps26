@@ -68,6 +68,15 @@
 			   Own classes, not .c3/.c5, which also carry a bolder weight. */
 			.reveal .eqred { color: var(--c5); }
 			.reveal .eqgreen { color: var(--c3); }
+			/* Control volume on the first budget slide. Plain SVG over the palette
+			   variables, so it follows the theme without a -dark twin; the symbols
+			   borrow the KaTeX faces so they match the equation above. */
+			.cv { width: 1160px; height: auto; margin-top: 0.25em; }
+			.cv .sym { font-size: 36px; fill: var(--r-main-color); }
+			.cv .up { font-family: "KaTeX_Main", STIXGeneral, serif; }
+			.cv .it { font-family: "KaTeX_Math", STIXGeneral, serif; font-style: italic; }
+			.cv .lbl { font-size: 27px; fill: var(--c-muted); }
+			.cv .lead { stroke: var(--c-rule); stroke-width: 2.5; fill: none; }
 			.reveal .eqink { color: var(--r-main-color); }
 			/* Curtain hand-off: the curtain centres its text, so the question that leads
 			   into the next slide is pinned to the bottom and nothing above it moves. */
@@ -138,21 +147,22 @@
 					<div class="grow">
 						<h3 class="c4 fragment" data-fragment-index="1">Theoretical</h3>
 						<p class="fragment" data-fragment-index="4">
-							<b>Data assimilation</b> can be leveraged for <span class="c4">physical discovery</span>. It is an
+							<b>Data assimilation</b> can be leveraged for <span class="c4">physical discovery</span>
+							<span class="ref">[Yoshida et al. 2005; Lalescu et al. 2013]</span>. It is an
 							<b>intrusive</b> technique that allows asking which <b>regions of the flow</b> carry the information
-							required to <b>reconstruct the rest</b>.
+							required to <b>reconstruct the rest</b> <span class="ref">[Di Leoni et al. 2020]</span>.
 						</p>
 						<p class="fragment" data-fragment-index="5">
-							This work set out to weigh <span class="c3">Vortex Stretching (VS)</span> against
-							<span class="c2">Strain Self Amplification (SSA)</span> <span class="ref">[Tsinober 2001]</span>.
-							<b>That proved not to be possible.</b>
+							This work set out to compare <span class="c3">Vortex Stretching (VS)</span> against
+							<span class="c2">Strain Self Amplification (SSA)</span> <span class="ref">[Johnson 2020; Encinar 2023]</span>.
+							<b>That has proven not to be possible with this method*.</b>
 						</p>
 					</div>
 					<div class="fragment" data-fragment-index="6" style="text-align: center">
 						<hr />
 						<p style="font-size: 1.1em">
-							<span class="c5 mark">✗</span>Assimilation <b>cannot distinguish</b> <span class="c3">VS</span> from <span class="c2">SSA</span>.<br />
-							<span class="c3 mark">✓</span>What it <b>does</b> separate, cleanly, is <span class="c4">vorticity</span> from <span class="c1">strain</span>.
+							<span class="c5 mark">✗</span>Assimilation <b>failed at distinguish</b> <span class="c3">VS</span> from <span class="c2">SSA</span>.<br />
+							<span class="c3 mark">✓</span>What it <b>does</b> separates, clearly, is <span class="c4">vorticity</span> from <span class="c1">strain</span>.
 						</p>
 					</div>
 				</section>
@@ -256,8 +266,8 @@
 						<div class="params"><span>$\phi$</span><span>$\Delta$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
 						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
 						<div class="overlay fragment">
-							<p><span class="c4">Vorticity</span>-based masks leave <b>more error</b> than <span class="c1">strain</span>-based ones</p>
-							<p class="fragment">$\Delta$ and $\phi$ move the <b>level</b>, never the <b>ordering</b>; nudging and direct assimilation agree, so only $\alpha\to\infty$ is shown</p>
+							<p><span class="c4">Vorticity</span>-based masks leave <b>more error</b> than <span class="c1">strain</span>-based ones. (And triple-products are better)</p>
+							<p class="fragment">Parameters move the <b>level</b>, but roughtly respect the <b>ordering</b>. Nudging and direct assimilation agree, so only $\alpha\to\infty$ is shown</p>
 							<div class="fragment ask"><hr /><p>What about <span class="c5">$Re_\lambda$</span>?</p></div>
 						</div>
 					</section>
@@ -278,7 +288,6 @@
 						<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
 						<div class="overlay fragment">
 							<p>For the Three Reynolds numbers shown, <b>the ordering</b> is robust, and roughly collapses in filter widths proportional to the integral scale</p>
-							<p class="muted fragment" style="font-size: 0.8em">$\circ$ B128 &nbsp; $\square$ B256 &nbsp; $\triangle$ B512</p>
 							<div class="fragment ask"><hr /><p>Is it the flow, or just the <span class="c5">shape of the mask</span>?</p></div>
 						</div>
 					</section>
@@ -287,7 +296,7 @@
 				<!-- ===================== Mask geometry ===================== -->
 				<section>
 					<h2>Is it the flow, or just the mask?</h2>
-					<p style="text-align: center; margin: 0">The masks differ in <b>how long they stay correlated</b> &mdash; compare each with a <b>decorrelated twin</b></p>
+					<p style="text-align: center; margin: 0">The masks differ in <b>how fast (and how thick) they are</b></p>
 					<div class="figs">
 						<figure>
 							<p class="legend">Error vs. correlation time</p>
@@ -301,10 +310,9 @@
 					<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
 					<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
 					<div class="overlay fragment">
-						<p>The error <b>collapses</b> on the mask’s correlation time</p>
-						<p class="fragment">Decorrelating the masks <b>collapses</b> the six curves onto one: the trends with $\Delta$ and $\phi$ are <b>geometry</b>.</p>
-						<p class="fragment">What separates them is the <b>excess</b> over their own control: up to <b>80% worse</b> for <span class="c4">vorticity</span>, on par or better for <span class="c1">strain</span>.</p>
-						<p class="fragment" style="font-size: 1.3em">The difference is in the <span class="c5">flow</span>, not in the mask</p>
+						<p>Triple products are <b>smaller, faster</b> versions of double ones.</p>
+						<p class="fragment">The only surving difference is <span class="c1">strain</span> vs <span class="c4">vorticity</span>.</p>
+						<p class="fragment" style="font-size: 1.3em">Decorrelating the masks <b>collapses</b> them. The difference is in <span class="c5">flow</span>, not in the mask</p>
 						<div class="fragment ask"><hr /><p>So where does the error <span class="c5">come from</span>?</p></div>
 					</div>
 				</section>
@@ -322,6 +330,47 @@
 							\underbrace{+\int_{\Omega} e^2\partial_t M\,\mathrm{d}V}_{\text{sweeping}}
 							\underbrace{-\oint_{\partial M}\!\boldsymbol{F}\!\cdot\!\boldsymbol{n}\,\mathrm{d}S}_{\text{flux}}$$
 							</div>
+							<svg class="cv" viewBox="0 0 1000 300" role="img" aria-labelledby="cv-t">
+								<title id="cv-t">The periodic box, the mask M, the budget volume outside it and its boundary</title>
+								<defs>
+									<marker id="cv-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+										<path d="M0,1 L9,5 L0,9 z" fill="var(--r-main-color)" />
+									</marker>
+									<marker id="cv-c4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+										<path d="M0,1 L9,5 L0,9 z" fill="var(--c4)" />
+									</marker>
+								</defs>
+								<!-- the periodic box; its interior is the budget volume -->
+								<rect x="350" y="22" width="266" height="256" rx="6" fill="var(--c-surface)" stroke="var(--c-rule)" stroke-width="3" />
+								<text class="sym up" x="364" y="58" font-size="30" fill="var(--c-muted)">&#937;</text>
+								<!-- the mask -->
+								<path d="M 423 95 C 453 70, 518 72, 541 105 C 563 138, 551 185, 515 203 C 479 221, 428 210, 410 178 C 393 147, 398 115, 423 95 Z"
+									fill="var(--c4)" fill-opacity="0.18" stroke="var(--c4)" stroke-width="3" />
+								<text class="sym it" x="470" y="148" text-anchor="middle" font-size="40" fill="var(--c4)">M</text>
+								<text class="lbl" x="470" y="180" text-anchor="middle" font-size="24" fill="var(--c4)">nudged</text>
+								<!-- the mask moves: the boundary sweeps over the error outside it -->
+								<path d="M 559 117 C 581 150, 569 197, 533 215 C 507 228, 473 226, 450 216"
+									fill="none" stroke="var(--c4)" stroke-width="2.5" stroke-dasharray="8 8" opacity="0.8" />
+								<path d="M 532 197 L 551 210" stroke="var(--c4)" stroke-width="3" marker-end="url(#cv-c4)" />
+								<!-- the outward normal -->
+								<path d="M 536 96 L 574 61" stroke="var(--r-main-color)" stroke-width="3" marker-end="url(#cv-ink)" />
+								<text class="sym it" x="584" y="54" font-size="30" font-weight="700">n</text>
+								<!-- volume terms, in the complement of the mask -->
+								<path class="lead" d="M 334 178 L 376 106" />
+								<text class="sym" x="320" y="96" text-anchor="end"><tspan class="up">&#172;</tspan><tspan class="it">M</tspan></text>
+								<text class="lbl" x="320" y="130" text-anchor="end" font-size="25">outside the mask</text>
+								<text class="lbl" x="320" y="180" text-anchor="end">forcing</text>
+								<text class="lbl" x="320" y="214" text-anchor="end">production</text>
+								<text class="lbl" x="320" y="248" text-anchor="end">dissipation</text>
+								<!-- surface term -->
+								<path class="lead" d="M 552 132 L 636 114" />
+								<text class="sym" x="646" y="112"><tspan class="up">&#8706;</tspan><tspan class="it">M</tspan></text>
+								<text class="lbl" x="646" y="146">flux</text>
+								<!-- boundary motion -->
+								<path class="lead" d="M 556 214 L 636 232" />
+								<text class="sym" x="646" y="240"><tspan class="up">&#8706;</tspan><tspan class="it" font-size="26" dy="8">t</tspan><tspan class="it" dy="-8">M</tspan></text>
+								<text class="lbl" x="646" y="274">sweeping</text>
+							</svg>
 						</div>
 					</section>
 
@@ -336,12 +385,12 @@
 						</div>
 						<div class="figs">
 							<figure>
-								<p class="legend eqred">Transport of error</p>
-								<img class="plot tall" src="media/pdf_terms_flux_own.svg" data-src-dark alt="Pdf of the transport flux per unit error" />
-							</figure>
-							<figure>
 								<p class="legend eqgreen">Production and dissipation</p>
 								<img class="plot tall" src="media/pdf_terms_dissprod_own.svg" data-src-dark alt="Pdf of the production plus dissipation per unit error" />
+							</figure>
+							<figure>
+								<p class="legend eqred">Transport of error</p>
+								<img class="plot tall" src="media/pdf_terms_flux_own.svg" data-src-dark alt="Pdf of the transport flux per unit error" />
 							</figure>
 						</div>
 						<p class="ind" style="font-size: 0.75em">
@@ -374,7 +423,8 @@
 							long-time averages, rates per $\tau_\eta$, each normalised with its own $e^2$
 						</p>
 						<div class="overlay fragment">
-							<p>The budget is <b>forcing+flux in, assimilation out</b>.</p>
+							<p>The budget is <b>forcing </b> vs <b>assimilation+fluxes</b>.</p>
+							<p>The strain mask <b>produces more</b> error, not less!!</p>
 							<p class="fragment">Per unit of error, the <span class="c1">strain</span> mask removes <b>42% more</b> than the <span class="c4">vorticity</span> one</p>
 							<div class="fragment ask"><hr /><p>The mask has the same (or worse) surface area and sweeping velocity &mdash; so what makes its <span class="c5">sweeping stronger</span>?</p></div>
 						</div>
@@ -384,21 +434,16 @@
 						<h2>Mask sweeping is stronger for strain</h2>
 						<div class="figs">
 							<figure>
-								<p class="legend">Error vs. compressive strain</p>
-								<img class="plot tall" src="media/pdf_angles_compressive.svg" data-src-dark alt="Alignment of the error with the compressive strain eigendirection" />
-							</figure>
-							<figure>
 								<p class="legend">Flow across the mask boundary</p>
 								<img class="plot tall" src="media/pdf_angles_flux.svg" data-src-dark alt="Alignment of the reference velocity with the gradient of the squared error at the mask boundary" />
 							</figure>
 						</div>
 						<p class="ind" style="font-size: 0.75em">
 							<span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp;
-							left, in $\neg M$; right, in a band of $3.6\eta$ around $\partial M$
+							in a band of $3.6\eta$ around $\partial M$
 						</p>
 						<div class="overlay fragment">
-							<p>The error sits in the <b>compressive</b> direction for both — the strain mask <b>produces more</b> error, not less</p>
-							<p class="fragment">What differs is <b>transport</b>: around <span class="c4">vortices</span> the flow slides <b>along</b> the mask boundary,
+							<p>What differs is <b>transport</b>: around <span class="c4">vortices</span> the flow slides <b>along</b> the mask boundary,
 							so it carries <b>3.6$\times$ less</b> error across it</p>
 						</div>
 					</section>
@@ -427,13 +472,13 @@
 							The error budget is <b>forcing produces error, assimilation kills it</b>. Strain masks remove error faster, but 
 							<b>not</b> by suppressing its production.
 						</p>
-						<p>
-                            High vorticity are bad for data assimilation because velocity curls across their surface, killing the <span class="c5">flux</span>
+						<p style="font-size: 1.3em">
+                            High vorticity regions are bad for data assimilation because velocity curls across their surface, killing the <span class="c5">flux</span>
 						</p>
 					</div>
 					<div class="overlay fragment">
 						<p>Thank you for listening!</p>
-						<p class="c4 fragment" style="font-size: 2.4em; font-weight: inherit; margin: 0">Questions? Suggestions?</p>
+						<p class="c4 fragment" style="font-size: 2.6em; font-weight: inherit; margin: 0">Questions?</p>
 					</div>
 				</section>
 
@@ -483,6 +528,20 @@
 					</div>
 					<div class="params"><span>$\phi=0.2$</span><span>$\Delta/\eta=2.5\ldots20$</span><span class="dim">$\alpha/\omega'\to\infty$</span></div>
 					<p class="ind"><b>vorticity</b> <span class="c4">$\omega_i\omega_i$</span>, <span class="c3">$\omega_iS_{ij}\omega_j\!>\!0$</span>, <span class="c6">$\omega_iS_{ij}\omega_j\!<\!0$</span>&nbsp;&nbsp;&nbsp;<b>strain</b> <span class="c1">$S_{ij}S_{ij}$</span>, <span class="c2">$-S_{ij}S_{jk}S_{ki}\!>\!0$</span>, <span class="c5">$-S_{ij}S_{jk}S_{ki}\!<\!0$</span></p>
+					</section>
+
+					<section>
+					<h2>Backup: error and compressive strain</h2>
+					<p style="text-align: center; margin: 0">Both masks put the error in the <b>compressive</b> direction &mdash; the <span class="c1">strain</span> one <b>produces more</b>, not less</p>
+					<div class="figs">
+						<figure>
+							<p class="legend">Error vs. compressive strain</p>
+							<img class="plot tall" src="media/pdf_angles_compressive.svg" data-src-dark alt="Alignment of the error with the compressive strain eigendirection" />
+						</figure>
+					</div>
+					<p class="ind" style="font-size: 0.75em">
+						<span class="c4">enstrophy</span> and <span class="c1">dissipation</span> masks &nbsp;·&nbsp; in $\neg M$
+					</p>
 					</section>
 				</section>
 			</div>
